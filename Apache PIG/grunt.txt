@@ -1,0 +1,7 @@
+cp /etc/passwd .
+
+pig -x local
+
+grunt> A = load 'passwd' using PigStorage(':'); 
+grunt> B = foreach A generate $0 as id; 
+grunt> dump B; 

@@ -1,0 +1,25 @@
+docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Ports}} "
+# ------------------------------
+docker exec -it spark-master /bin/bash
+# ------------------------------
+/spark/bin/pyspark --master spark://spark-master:7077
+# ------------------------------
+from pyspark.streaming import StreamingContext
+ssc = StreamingContext(sc, 2)
+lines = ssc.socketTextStream("localhost", 1106)
+# Split each line into words
+words = lines.flatMap(lambda line: line.split(" "))
+# Count each word in each batch
+pairs = words.map(lambda word: (word, 1))
+wordCounts = pairs.reduceByKey(lambda x, y: x + y)
+# Print the first ten elements of each RDD generated in this DStream to the console
+wordCounts.pprint()
+# Start the computation
+ssc.start()
+# Wait for the computation to terminate
+# ssc.awaitTermination()
+
+# ------------------------------From spark-worker-1 ---------
+docker exec -it spark-worker-1 /bin/bash
+# ------------------------------
+nc -l localhost -p 1106
